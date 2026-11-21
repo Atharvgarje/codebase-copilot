@@ -1,0 +1,49 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_DB: codebase_copilot
+      POSTGRES_USER: copilot
+      POSTGRES_PASSWORD: copilot
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U copilot -d codebase_copilot"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  ollama:
+    image: ollama/ollama:latest
+    volumes:
+      - ollama_data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  app:
+    build: .
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/codebase_copilot
+      DB_USERNAME: copilot
+      DB_PASSWORD: copilot
+      AI_ENABLED: "true"
+      AI_BASE_URL: http://ollama:11434/v1
+      AI_CHAT_MODEL: qwen2.5-coder:1.5b
+      AI_EMBEDDING_MODEL: nomic-embed-text
+      AI_READ_TIMEOUT: PT5M
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  ollama_data:

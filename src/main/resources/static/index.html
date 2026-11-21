@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1119">
+  <meta name="description" content="Ask questions about a code repository and get answers grounded in cited source code.">
+  <title>Codebase Copilot</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <div class="app-frame">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Codebase Copilot home">
+        <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+        <span>codebase<span class="brand-light">copilot</span></span>
+      </a>
+      <div class="topbar-right">
+        <span class="local-indicator"><span class="pulse-dot"></span> LOCAL AI <span class="divider-dot">·</span> OLLAMA</span>
+        <a class="api-link" href="/actuator/health" target="_blank" rel="noreferrer">API status <span aria-hidden="true">↗</span></a>
+        <div class="avatar" title="Codebase Copilot">CC</div>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="sidebar-heading">
+          <div>
+            <p class="eyebrow">YOUR WORKSPACE</p>
+            <h2>Repositories</h2>
+          </div>
+          <span class="repo-count" id="repo-count">0</span>
+        </div>
+
+        <form class="project-form" id="project-form">
+          <label for="project-name">Connect a repository</label>
+          <input id="project-name" name="name" placeholder="Project name" maxlength="120" required>
+          <input id="repository-url" name="repositoryUrl" type="url" placeholder="https://github.com/org/repo" maxlength="2048" required>
+          <div class="form-row">
+            <input id="default-branch" name="defaultBranch" value="main" placeholder="Branch" maxlength="255" required>
+            <button class="icon-button add-button" type="submit" aria-label="Add repository" title="Add repository">+</button>
+          </div>
+        </form>
+
+        <div class="repo-list-heading"><span>CONNECTED</span><span id="repo-list-state"></span></div>
+        <nav class="repo-list" id="repo-list" aria-label="Connected repositories">
+          <div class="empty-repo">Loading repositories<span class="loading-dots">...</span></div>
+        </nav>
+        <div class="sidebar-note">
+          <span class="note-icon">✳</span>
+          <p><strong>Your code stays local.</strong><br>Models run on your machine through Ollama.</p>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <div class="page-heading">
+          <div>
+            <p class="eyebrow"><span class="crumb-dot"></span> CODE INTELLIGENCE</p>
+            <h1>Understand your codebase.</h1>
+            <p class="page-subtitle">Ask the questions you’d ask a teammate. Get answers grounded in your code.</p>
+          </div>
+          <div class="model-chip"><span class="sparkle">✳</span><span><strong>Qwen 2.5 Coder</strong><small>Running locally</small></span></div>
+        </div>
+
+        <section class="workspace-card" id="workspace-card" aria-live="polite">
+          <div class="workspace-topline">
+            <div class="project-identity">
+              <div class="project-glyph" aria-hidden="true">&lt;/&gt;</div>
+              <div class="project-title-wrap">
+                <p class="eyebrow">CURRENT PROJECT</p>
+                <h2 id="selected-project-name">Choose a repository</h2>
+                <a id="selected-project-url" class="project-url" href="#" target="_blank" rel="noreferrer"></a>
+              </div>
+            </div>
+            <div class="project-actions">
+              <span id="index-status" class="status-pill status-idle"><span class="status-dot"></span><span id="index-status-text">No project selected</span></span>
+              <button id="index-button" class="button button-secondary" type="button" disabled><span class="button-icon">↻</span> Index repository</button>
+            </div>
+          </div>
+          <div class="project-meta" id="project-meta" hidden>
+            <span><span class="meta-icon">⌁</span> Branch <strong id="branch-value">main</strong></span>
+            <span class="meta-separator"></span>
+            <span><span class="meta-icon">◷</span> Job <strong id="job-value">Not indexed</strong></span>
+            <span class="meta-separator"></span>
+            <span><span class="meta-icon">⌘</span> Indexing runs in the background</span>
+          </div>
+        </section>
+
+        <section class="question-card" id="question-card">
+          <div class="section-heading">
+            <div class="section-number">01</div>
+            <div><h2>Ask your codebase</h2><p>Answers include file and line citations you can verify.</p></div>
+          </div>
+          <form id="question-form">
+            <label class="sr-only" for="question-input">Ask a question about the selected repository</label>
+            <div class="question-box">
+              <textarea id="question-input" rows="3" maxlength="2000" placeholder="e.g. Where is the application entry point, and what happens when the app starts?" required disabled></textarea>
+              <div class="question-footer">
+                <span id="question-hint"><span class="hint-icon">↳</span> Select an indexed repository to start asking</span>
+                <button id="ask-button" class="button button-primary" type="submit" disabled>Ask Copilot <span aria-hidden="true">→</span></button>
+              </div>
+            </div>
+          </form>
+          <div class="suggestions" id="suggestions" hidden>
+            <span class="suggestion-label">TRY ASKING</span>
+            <button type="button" class="suggestion" data-question="Where is the application entry point?">Where does the app start?</button>
+            <button type="button" class="suggestion" data-question="How does a request flow through the main application layers?">Trace a request</button>
+            <button type="button" class="suggestion" data-question="How is the database configured and accessed?">Find database access</button>
+          </div>
+        </section>
+
+        <section class="answer-card" id="answer-card" hidden aria-live="polite">
+          <div class="answer-heading">
+            <div class="answer-title"><div class="answer-mark">✳</div><div><p class="eyebrow">COPILOT RESPONSE</p><h2>Here’s what I found</h2></div></div>
+            <button class="icon-button copy-button" id="copy-answer" type="button" title="Copy answer" aria-label="Copy answer">▢</button>
+          </div>
+          <div class="answer-body" id="answer-body"></div>
+          <div class="answer-footer" id="answer-footer"></div>
+          <div class="citations-heading"><span>GROUNDED IN YOUR CODE</span><span id="citation-count"></span></div>
+          <div class="citations-list" id="citations-list"></div>
+        </section>
+
+        <div class="empty-state" id="empty-state">
+          <div class="empty-graphic" aria-hidden="true"><span class="orbit orbit-one"></span><span class="orbit orbit-two"></span><span class="empty-code">{ }</span><span class="orbit-node"></span></div>
+          <h2>Your code has answers.</h2>
+          <p>Connect a public GitHub repository, index it, then ask how it works.</p>
+          <div class="empty-steps"><span><i>1</i> Connect repo</span><b>—</b><span><i>2</i> Index code</span><b>—</b><span><i>3</i> Ask away</span></div>
+        </div>
+
+        <div class="toast" id="toast" role="status" aria-live="polite"></div>
+        <footer class="page-footer"><span>BUILT FOR CURIOUS ENGINEERS</span><span>Codebase Copilot <span class="footer-separator">·</span> v1.0</span></footer>
+      </main>
+    </div>
+  </div>
+</body>
+</html>
