@@ -89,10 +89,6 @@ PostgreSQL defaults are for local development only. Set `DB_URL`, `DB_USERNAME`,
 
 This version supports public GitHub repositories and is intended for local portfolio use. Authentication, private repository access, per-user authorization, and quotas are not implemented yet. The API is bound to localhost in Compose; add those controls before exposing it to other users.
 
-## Interview discussion
-
-Be ready to explain why the API does not clone a repository inline, why every chunk keeps a commit and line range, how duplicate job delivery is made safe, how model timeouts and rate limits are handled, how tenant isolation works, and what metrics would trigger a worker/broker split. The architecture should be scaled from measured bottlenecks rather than by adding microservices on day one.
-
 ## Roadmap
 
 - [x] Project registration API with bounded pagination and consistent error responses
