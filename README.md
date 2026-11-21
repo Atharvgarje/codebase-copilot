@@ -90,7 +90,7 @@ PostgreSQL defaults are for local development only. Set `DB_URL`, `DB_USERNAME`,
 This version supports public GitHub repositories and is intended for local portfolio use. Authentication, private repository access, per-user authorization, and quotas are not implemented yet. The API is bound to localhost in Compose; add those controls before exposing it to other users.
 
 
-=======
+
 
 
 
